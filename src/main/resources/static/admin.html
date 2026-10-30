@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AutoDrive - Admin Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f1f5f9; }
+        header { background: #0f172a; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        header a { color: #94a3b8; text-decoration: none; }
+        .container { padding: 30px; max-width: 1200px; margin: auto; }
+        .login-box { background: white; padding: 30px; max-width: 350px; margin: 80px auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        .login-box input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 4px; }
+        .login-box button { width: 95%; padding: 10px; background: #0284c7; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        th { background: #1e293b; color: white; }
+        tr:hover { background: #f8fafc; }
+        .badge-buy { color: #16a34a; font-weight: bold; }
+        .badge-rent { color: #0284c7; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AutoDrive Admin Panel</h1>
+    <a href="index.html">← Back to Main Site</a>
+</header>
+
+<div class="container">
+    <div id="loginSection" class="login-box">
+        <h2>Admin Login</h2>
+        <input type="text" id="adminUser" placeholder="Username (admin)">
+        <input type="password" id="adminPass" placeholder="Password (admin123)">
+        <button onclick="login()">Login</button>
+        <p id="loginError" style="color: red; display: none; margin-top: 10px;">Invalid credentials!</p>
+    </div>
+
+    <div id="dashboardSection" style="display: none;">
+        <h2>User Applications & Rental Requests</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Applicant Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Car</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Pick-up Date & Time</th>
+                <th>Return Date & Time</th>
+            </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function login() {
+        const user = document.getElementById('adminUser').value;
+        const pass = document.getElementById('adminPass').value;
+
+        if (user === 'admin' && pass === 'admin123') {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'block';
+            loadAdminBookings();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+
+    function formatDateTime(dtStr) {
+        if (!dtStr || dtStr === 'N/A') return 'N/A';
+        return dtStr.replace('T', ' ');
+    }
+
+    function loadAdminBookings() {
+        fetch('/api/bookings')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('adminTableBody');
+                tbody.innerHTML = '';
+                data.forEach(b => {
+                    const typeClass = b.bookingType === 'BUY' ? 'badge-buy' : 'badge-rent';
+                    tbody.innerHTML += `
+                            <tr>
+                                <td>${b.id}</td>
+                                <td>${b.userName}</td>
+                                <td>${b.userEmail}</td>
+                                <td>${b.userPhone}</td>
+                                <td>${b.carName}</td>
+                                <td class="${typeClass}">${b.bookingType}</td>
+                                <td>₹${b.price.toLocaleString()}</td>
+                                <td>${formatDateTime(b.startDate)}</td>
+                                <td>${formatDateTime(b.endDate)}</td>
+                            </tr>
+                        `;
+                });
+            });
+    }
+</script>
+</body>
+</html>
